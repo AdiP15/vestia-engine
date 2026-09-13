@@ -1,0 +1,64 @@
+{% extends 'matching/base.html' %}
+
+{% block title %}Smart Grading - PRISMATA{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+    <div class="bg-indigo-600 px-8 py-6 text-white">
+        <h1 class="text-2xl font-bold">📝 Smart Grading</h1>
+        <p class="text-indigo-100 mt-1 text-sm">Penilaian esai otomatis berbasis kemiripan semantik menggunakan model AI.</p>
+    </div>
+
+    <div class="p-8">
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            
+            <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2">Judul / Pertanyaan Soal</label>
+                <input type="text" name="nama_soal" placeholder="Contoh: Jelaskan arsitektur MVC..." 
+                       value="{{ request.POST.nama_soal }}"
+                       class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition">
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2">Jawaban Ideal (Dari HRD) <span class="text-red-500">*</span></label>
+                    <textarea name="jawaban_ideal" required rows="6"
+                              placeholder="Tuliskan kata kunci atau poin-poin yang diharapkan..."
+                              class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition bg-indigo-50">{{ request.POST.jawaban_ideal }}</textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2">Jawaban Pelamar <span class="text-red-500">*</span></label>
+                    <textarea name="jawaban_pelamar" required rows="6"
+                              placeholder="Tempel jawaban dari pelamar di sini..."
+                              class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition">{{ request.POST.jawaban_pelamar }}</textarea>
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-slate-100">
+                <button type="submit" class="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-lg shadow-md transition-all">
+                    Evaluasi Jawaban ⚡
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if result %}
+<div class="mt-8 bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+    <div class="p-8 flex flex-col md:flex-row items-center gap-8">
+        <div class="flex-shrink-0 text-center p-6 rounded-xl border-2 border-indigo-200 bg-indigo-50 w-48">
+            <div class="text-6xl font-black text-indigo-600">{{ result.grade }}</div>
+            <div class="mt-2 font-bold text-lg text-slate-700">{{ result.score }} / 100</div>
+            <div class="text-xs text-slate-500 mt-1">Cosine: {{ result.cosine_raw }}</div>
+        </div>
+        <div class="flex-grow">
+            <h3 class="text-lg font-bold text-slate-800 mb-2">Analisis AI</h3>
+            <div class="p-4 bg-slate-50 border-l-4 border-indigo-500 rounded-r-lg text-slate-700">
+                <p><strong>Feedback:</strong> {{ result.feedback }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

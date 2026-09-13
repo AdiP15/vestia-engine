@@ -1,0 +1,112 @@
+<!-- matching/templates/matching/match_form.html -->
+{% extends 'matching/base.html' %}
+
+{% block title %}Skill Matching - PRISMATA{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+    <!-- Header Form -->
+    <div class="bg-primary px-8 py-6 text-white">
+        <h1 class="text-2xl font-bold">🎯 Skill Matching</h1>
+        <p class="text-indigo-100 mt-1 text-sm">Evaluasi kandidat menggunakan AI Sentence-BERT (SBERT) dan Cosine Similarity.</p>
+    </div>
+
+    <div class="p-8">
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            
+            <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2">Nama Lowongan</label>
+                <input type="text" name="nama_lowongan" placeholder="Misal: Software Engineer - Backend" 
+                       value="{{ request.POST.nama_lowongan }}"
+                       class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition">
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2">Teks Resume Pelamar <span class="text-red-500">*</span></label>
+                    <textarea name="resume_text" required rows="6"
+                              placeholder="Tempel teks resume kandidat di sini..."
+                              class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition">{{ request.POST.resume_text }}</textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2">Deskripsi Lowongan <span class="text-red-500">*</span></label>
+                    <textarea name="job_description" required rows="6"
+                              placeholder="Tempel deskripsi & kualifikasi pekerjaan..."
+                              class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition">{{ request.POST.job_description }}</textarea>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2">Skill Spesifik yang Dibutuhkan</label>
+                <input type="text" name="required_skills" placeholder="Pisahkan dengan koma. Misal: PHP, Laravel, MySQL" 
+                       value="{{ request.POST.required_skills }}"
+                       class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition">
+            </div>
+
+            <div class="pt-4 border-t border-slate-100">
+                <button type="submit" class="w-full md:w-auto bg-primary hover:bg-secondary text-white font-bold py-3 px-8 rounded-lg shadow-md hover:shadow-lg transition-all">
+                    Analisis Kompatibilitas ⚡
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Hasil Analisis -->
+{% if result %}
+<div class="mt-8 bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+    <div class="p-8">
+        <h3 class="text-lg font-bold text-slate-800 mb-6 border-b pb-2">📊 Hasil Evaluasi Sistem</h3>
+        
+        <div class="flex flex-col md:flex-row items-center gap-8">
+            <!-- Skor -->
+            <div class="flex-shrink-0 text-center p-6 rounded-xl border-2 
+                {% if result.label == 'Good Fit' %} border-emerald-500 bg-emerald-50
+                {% elif result.label == 'Potential Fit' %} border-amber-400 bg-amber-50
+                {% else %} border-red-500 bg-red-50 {% endif %}">
+                <div class="text-5xl font-black 
+                    {% if result.label == 'Good Fit' %} text-emerald-600
+                    {% elif result.label == 'Potential Fit' %} text-amber-600
+                    {% else %} text-red-600 {% endif %}">
+                    {{ result.score }}%
+                </div>
+                <div class="mt-2 font-bold text-lg text-slate-700">{{ result.label }}</div>
+                <div class="text-xs text-slate-500 mt-1">Cosine: {{ result.cosine_raw }}</div>
+            </div>
+
+            <!-- Gap Analysis -->
+            <div class="flex-grow w-full">
+                <h4 class="font-bold text-slate-700 mb-3">Skill Gap Analysis (Match: {{ result.skill_match_pct }}%)</h4>
+                
+                {% if result.matched_skills %}
+                <div class="mb-3">
+                    <span class="text-sm text-slate-500 block mb-1">Ditemukan:</span>
+                    <div class="flex flex-wrap gap-2">
+                        {% for skill in result.matched_skills %}
+                        <span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold border border-emerald-200">
+                            ✓ {{ skill }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if result.missing_skills %}
+                <div>
+                    <span class="text-sm text-slate-500 block mb-1">Tidak Ditemukan:</span>
+                    <div class="flex flex-wrap gap-2">
+                        {% for skill in result.missing_skills %}
+                        <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold border border-red-200">
+                            ✕ {{ skill }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

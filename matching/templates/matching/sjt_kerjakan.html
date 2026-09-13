@@ -1,0 +1,68 @@
+{% extends 'matching/base.html' %}
+
+{% block title %}Kerjakan SJT - PRISMATA{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold text-slate-800">🧠 Ujian SJT</h1>
+        <p class="text-slate-500 mt-2">Pilih satu respons yang menurut Anda paling tepat untuk setiap skenario.</p>
+    </div>
+
+    {% if soal_list %}
+    <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 mb-6 sticky top-20 z-40">
+        <div class="w-full bg-slate-200 rounded-full h-2.5">
+            <div id="progressBar" class="bg-blue-600 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+        </div>
+        <p id="progressText" class="text-xs text-slate-500 text-center mt-2 font-medium">0 / {{ soal_list|length }} soal terjawab</p>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        
+        {% for soal in soal_list %}
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6 hover:shadow-md transition">
+            <div class="flex items-center gap-3 mb-4">
+                <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Soal {{ forloop.counter }}</span>
+                <span class="text-xs text-slate-500 font-medium">{{ soal.kompetensi }}</span>
+            </div>
+            
+            <p class="text-slate-800 font-medium text-lg mb-6 leading-relaxed">{{ soal.skenario }}</p>
+            
+            <div class="space-y-3">
+                {% for pilihan in soal.pilihan %}
+                <label class="block cursor-pointer">
+                    <!-- Gunakan peer Tailwind untuk styling berbasis state -->
+                    <input type="radio" name="soal_{{ soal.id }}" value="{{ pilihan.huruf }}" onchange="updateProgress()" class="peer sr-only" required>
+                    <div class="p-4 rounded-xl border-2 border-slate-100 bg-slate-50 hover:bg-slate-100 peer-checked:border-blue-500 peer-checked:bg-blue-50 transition-all flex gap-4">
+                        <span class="font-bold text-slate-400 peer-checked:text-blue-600">{{ pilihan.huruf }}.</span>
+                        <span class="text-slate-600 peer-checked:text-blue-800 peer-checked:font-medium">{{ pilihan.teks }}</span>
+                    </div>
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+
+        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg transition transform hover:-translate-y-1 text-lg">
+            Selesaikan Ujian & Lihat Hasil
+        </button>
+    </form>
+
+    <script>
+        const totalSoal = {{ soal_list|length }};
+        function updateProgress() {
+            const answered = document.querySelectorAll('input[type="radio"]:checked').length;
+            const pct = Math.round((answered / totalSoal) * 100);
+            document.getElementById('progressBar').style.width = pct + '%';
+            document.getElementById('progressText').textContent = answered + ' / ' + totalSoal + ' soal terjawab';
+        }
+    </script>
+    {% else %}
+    <div class="bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-xl p-8 text-center">
+        <p class="font-bold text-lg">Bank Soal Kosong</p>
+        <p class="mt-1 text-sm">Belum ada soal SJT yang aktif. Silakan tambahkan soal terlebih dahulu.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
